@@ -1,0 +1,126 @@
+step "back-up-store-server-database" {
+    name = "Back up store server database"
+    properties = {
+        Octopus.Action.TargetRoles = "pos-server"
+    }
+
+    action {
+        action_type = "Octopus.Script"
+        properties = {
+            Octopus.Action.RunOnServer = "false"
+            Octopus.Action.Script.ScriptBody = <<-EOT
+                $connection = $OctopusParameters["Pos.Server.Database.ConnectionString"]
+                
+                Write-Highlight "Backing up store server database"
+                Write-Highlight "Using connection string: $connection"
+                
+                Start-Sleep 5
+                
+                Write-Highlight "Finished backing up store server database"
+                EOT
+            Octopus.Action.Script.ScriptSource = "Inline"
+            Octopus.Action.Script.Syntax = "PowerShell"
+        }
+    }
+}
+
+step "back-up-store-server-filesystem" {
+    name = "Back up store server filesystem"
+    properties = {
+        Octopus.Action.TargetRoles = "pos-server"
+    }
+
+    action {
+        action_type = "Octopus.Script"
+        properties = {
+            Octopus.Action.RunOnServer = "false"
+            Octopus.Action.Script.ScriptBody = <<-EOT
+                Write-Highlight "Backing up store server filesystem"
+                
+                Start-Sleep 5
+                
+                Write-Highlight "Finished backing up store server filesystem"
+                EOT
+            Octopus.Action.Script.ScriptSource = "Inline"
+            Octopus.Action.Script.Syntax = "PowerShell"
+        }
+    }
+}
+
+step "upgrade-store-server-database" {
+    name = "Upgrade store server database"
+    properties = {
+        Octopus.Action.TargetRoles = "pos-server"
+    }
+
+    action {
+        action_type = "Octopus.Script"
+        properties = {
+            Octopus.Action.RunOnServer = "false"
+            Octopus.Action.Script.ScriptBody = <<-EOT
+                $connection = $OctopusParameters["Pos.Server.Database.ConnectionString"]
+                $new = $OctopusParameters["Octopus.Release.Number"]
+                
+                Write-Highlight "Upgrading store server database"
+                Write-Highlight "Using connection string: $connection"
+                Write-Highlight "Applying migrations for version $new"
+                
+                Start-Sleep 5
+                
+                Write-Highlight "Finished upgrading store server database"
+                EOT
+            Octopus.Action.Script.ScriptSource = "Inline"
+            Octopus.Action.Script.Syntax = "PowerShell"
+        }
+
+        packages "Pos.Server.Migrations" {
+            acquisition_location = "Server"
+            feed = "octopus-server-built-in"
+            package_id = "Pos.Server.Migrations"
+            properties = {
+                Extract = "False"
+                Purpose = ""
+                SelectionMode = "immediate"
+            }
+        }
+    }
+}
+
+step "upgrade-store-server-software" {
+    name = "Upgrade store server software"
+    properties = {
+        Octopus.Action.TargetRoles = "pos-server"
+    }
+
+    action {
+        action_type = "Octopus.Script"
+        properties = {
+            Octopus.Action.RunOnServer = "false"
+            Octopus.Action.Script.ScriptBody = <<-EOT
+                $current = $OctopusParameters["Octopus.Release.Previous.Number"]
+                $new = $OctopusParameters["Octopus.Release.Number"]
+                
+                Write-Highlight "Upgrading store server software"
+                Write-Highlight "Current version is $current"
+                Write-Highlight "New version is $new"
+                
+                Start-Sleep 5
+                
+                Write-Highlight "Finished upgrading store server software"
+                EOT
+            Octopus.Action.Script.ScriptSource = "Inline"
+            Octopus.Action.Script.Syntax = "PowerShell"
+        }
+
+        packages "Pos.Server.Application" {
+            acquisition_location = "Server"
+            feed = "octopus-server-built-in"
+            package_id = "Pos.Server.Application"
+            properties = {
+                Extract = "False"
+                Purpose = ""
+                SelectionMode = "immediate"
+            }
+        }
+    }
+}
