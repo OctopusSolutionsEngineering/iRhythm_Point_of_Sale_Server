@@ -6,6 +6,7 @@ step "back-up-store-server-database" {
 
     action {
         action_type = "Octopus.Script"
+        notes = "Make a copy of the store server database prior to upgrading"
         properties = {
             Octopus.Action.RunOnServer = "false"
             Octopus.Action.Script.ScriptBody = <<-EOT
